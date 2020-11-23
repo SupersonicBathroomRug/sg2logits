@@ -18,27 +18,27 @@ from training import misc
 
 #----------------------------------------------------------------------------
 
-def project_image(proj, targets, png_prefix, num_snapshots):
+def project_image(proj, targets, jpg_prefix, num_snapshots):
     snapshot_steps = set(proj.num_steps - np.linspace(0, proj.num_steps, num_snapshots, endpoint=False, dtype=int))
-    misc.save_image_grid(targets, png_prefix + 'target.png', drange=[-1,1])
+    misc.save_image_grid(targets, jpg_prefix + 'target.jpg', drange=[-1,1])
     proj.start(targets)
     while proj.get_cur_step() < proj.num_steps:
         print('\r%d / %d ... ' % (proj.get_cur_step(), proj.num_steps), end='', flush=True)
         proj.step()
         if proj.get_cur_step() in snapshot_steps:
-            misc.save_image_grid(proj.get_images(), png_prefix + 'step%04d.png' % proj.get_cur_step(), drange=[-1,1])
+            misc.save_image_grid(proj.get_images(), jpg_prefix + 'step%04d.jpg' % proj.get_cur_step(), drange=[-1,1])
     print('\r%-30s\r' % '', end='', flush=True)
 
 #----------------------------------------------------------------------------
 
-def dream_project(proj, png_prefix, num_snapshots):
+def dream_project(proj, jpg_prefix, num_snapshots):
     snapshot_steps = set(proj.num_steps - np.linspace(0, proj.num_steps, num_snapshots, endpoint=False, dtype=int))
     proj.start()
     while proj.get_cur_step() < proj.num_steps:
         print('\r%d / %d ... ' % (proj.get_cur_step(), proj.num_steps), end='', flush=True)
         proj.step()
         if proj.get_cur_step() in snapshot_steps:
-            misc.save_image_grid(proj.get_images(), png_prefix + 'step%04d.png' % proj.get_cur_step(), drange=[-1,1])
+            misc.save_image_grid(proj.get_images(), jpg_prefix + 'step%04d.jpg' % proj.get_cur_step(), drange=[-1,1])
     print('\r%-30s\r' % '', end='', flush=True)
 
 #----------------------------------------------------------------------------
@@ -60,7 +60,7 @@ def project_generated_images(network_pkl, seeds, num_snapshots, truncation_psi):
         z = rnd.randn(1, *Gs.input_shape[1:])
         tflib.set_vars({var: rnd.randn(*var.shape.as_list()) for var in noise_vars})
         images = Gs.run(z, None, **Gs_kwargs)
-        project_image(proj, targets=images, png_prefix=dnnlib.make_run_dir_path('seed%04d-' % seed), num_snapshots=num_snapshots)
+        project_image(proj, targets=images, jpg_prefix=dnnlib.make_run_dir_path('seed%04d-' % seed), num_snapshots=num_snapshots)
 
 #----------------------------------------------------------------------------
 
@@ -78,7 +78,7 @@ def project_real_images(network_pkl, dataset_name, data_dir, num_images, num_sna
         print('Projecting image %d/%d ...' % (image_idx, num_images))
         images, _labels = dataset_obj.get_minibatch_np(1)
         images = misc.adjust_dynamic_range(images, [0, 255], [-1, 1])
-        project_image(proj, targets=images, png_prefix=dnnlib.make_run_dir_path('image%04d-' % image_idx), num_snapshots=num_snapshots)
+        project_image(proj, targets=images, jpg_prefix=dnnlib.make_run_dir_path('image%04d-' % image_idx), num_snapshots=num_snapshots)
 
 #----------------------------------------------------------------------------
 

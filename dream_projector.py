@@ -46,11 +46,17 @@ class DreamProjector:
         self._cur_step              = None
         self._celeba_classifier     = None
 
+        #PGergo added
+        self.network = None
+        self.graph = None
+        self.ins = None
+        self.initialized = False
+
     def _info(self, *args):
         if self.verbose:
             print('Projector:', *args)
 
-    def set_network(self, Gs, network_protobuf_path, layer_name, neuron_index):
+    def _initialize(self, Gs, pb):
         self._minibatch_size = 1
         self._Gs = Gs
         if self._Gs is None:
@@ -96,40 +102,28 @@ class DreamProjector:
         # Downsample image to 256x256 if it's larger than that. VGG was built for 224x224 images.
         proc_images_expr = (self._images_expr + 1) * (255 / 2)
         sh = proc_images_expr.shape.as_list()
-        if sh[2] > 256:
-            factor = sh[2] // 256
+        if sh[2] > 224:
+            factor = sh[2] // 224
             proc_images_expr = tf.reduce_mean(tf.reshape(proc_images_expr, [-1, sh[1], sh[2] // factor, factor, sh[2] // factor, factor]), axis=[3,5])
+
+        self.load_network(pb, proc_images_expr)
+
+    def set_network(self, Gs, network_protobuf_path, layer_name, neuron_index):
+
+        if not self.initialized:
+            self._initialize(Gs, network_protobuf_path)
+            self.initialized = True
 
         # Loss graph.
         self._info('Building loss graph...')
-
-        if self._celeba_classifier is None:
-            from lucid.modelzoo.vision_base import Model
-
-            class FrozenNetwork(Model):
-                model_path = network_protobuf_path
-                image_shape = [256, 256, 3]
-                image_value_range = (0, 1)
-                input_name = 'input_1'
-
-            network = FrozenNetwork()
-            network.load_graphdef()
-            # proc_images_expr.shape = (1, 3, 256, 256), range = (0, 255)
-            # input_image.shape = (1, 256, 256, 3), range = (0, 1)
-            input_image = tf.transpose(proc_images_expr, perm=(0, 2, 3, 1)) / 255
-
-            # TODO memory leak
-            ins = str(np.random.randint(10000))
-            network.import_graph(t_input=input_image, scope=ins)
-
-            # layer_name, neuron_index = "Mixed_5c_Branch_3_b_1x1_act/Relu", 16
-            g = tf.get_default_graph()
-            layer = g.get_tensor_by_name(ins + "/" + layer_name + ":0")
-            neuron = layer[:, :, :, neuron_index]
-            # reduce_max would make sense too.
-            mean_activation = tf.reduce_mean(neuron, axis=(1, 2))
-            self._loss = - mean_activation
-            self._dist = self._loss
+        
+        # layer_name, neuron_index = "Mixed_5c_Branch_3_b_1x1_act/Relu", 16
+        layer = self.graph.get_tensor_by_name(self.ins + "/" + layer_name + ":0")
+        neuron = layer[:, :, :, neuron_index]
+        # reduce_max would make sense too.
+        mean_activation = tf.reduce_mean(neuron, axis=(1, 2))
+        self._loss = -mean_activation
+        self._dist = self._loss
 
         # Noise regularization graph.
         self._info('Building noise regularization graph...')
@@ -143,6 +137,7 @@ class DreamProjector:
                 v = tf.reshape(v, [1, 1, sz//2, 2, sz//2, 2]) # Downscale
                 v = tf.reduce_mean(v, axis=[3, 5])
                 sz = sz // 2
+
         self._loss += reg_loss * self.regularize_noise_weight
 
         # Optimizer.
@@ -151,6 +146,29 @@ class DreamProjector:
         self._opt = dnnlib.tflib.Optimizer(learning_rate=self._lrate_in)
         self._opt.register_gradients(self._loss, [self._dlatents_var] + self._noise_vars)
         self._opt_step = self._opt.apply_updates()
+
+    def load_network(self, pb_path, input_tensor):
+        
+        from lucid.modelzoo.vision_base import Model
+
+        class FrozenNetwork(Model):
+            model_path = pb_path
+            image_shape = [224, 224, 3]
+            image_value_range = (-1, 1)
+            input_name = 'input_1'
+
+        network = FrozenNetwork()
+        network.load_graphdef()
+        # proc_images_expr.shape = (1, 3, 256, 256), range = (0, 255)
+        # input_image.shape = (1, 256, 256, 3), range = (0, 1)
+        input_image = tf.transpose(input_tensor, perm=(0, 2, 3, 1)) / 255
+
+        # TODO memory leak
+        self.ins = str(np.random.randint(10000))
+        network.import_graph(t_input=input_image, scope=self.ins)
+        self.network = network
+        self.graph = tf.get_default_graph()
+
 
     def run(self):
         # Run to completion.

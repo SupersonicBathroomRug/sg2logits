@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+projection/
+results/
+results.zip
+stdout_*
+*.pb
+.stylegan2-cache
+dnnlib/tflib/_cudacache/
