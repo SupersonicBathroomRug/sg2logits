@@ -50,7 +50,7 @@ def dream_project(gan_net, pb_path, layer_name, neuron_index, prefix):
 
 def alt_dream_project(gan_net, pb_path, neuron_index, prefix,active_goals,logit_goals,logit_weights):
     proj = dream_projector.DreamProjector()
-    proj.custom_set(gan_net, pb_path,active_goals,logit_goals,logit weights)
+    proj.custom_set(gan_net, pb_path,active_goals,logit_goals,logit_weights)
     run_projector.dream_project(proj, prefix+'/', N_ITERATIONS)
 
 def save_video(work_dir, save_path):
