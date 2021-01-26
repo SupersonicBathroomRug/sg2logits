@@ -48,6 +48,11 @@ def dream_project(gan_net, pb_path, layer_name, neuron_index, prefix):
     proj.set_network(gan_net, pb_path, layer_name, neuron_index)
     run_projector.dream_project(proj, prefix+'/', N_ITERATIONS)
 
+def alt_dream_project(gan_net, pb_path, neuron_index, prefix,active_goals,logit_goals,logit_weights):
+    proj = dream_projector.DreamProjector()
+    proj.custom_set(gan_net, pb_path,active_goals,logit_goals,logit weights)
+    run_projector.dream_project(proj, prefix+'/', N_ITERATIONS)
+
 def save_video(work_dir, save_path):
     imgs = sorted(glob.glob(os.path.join(work_dir, '*.jpg')))
     with imageio.get_writer(save_path, mode='I') as writer:
@@ -78,6 +83,28 @@ def vis_layers(gan_net, pb_path, layer_info, work_dir, save_dir):
             files = glob.glob(os.path.join(work_dir, '*'))
             for f in files:
                 os.remove(f)
+
+def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights):
+    sub_folder = os.path.join(save_dir, "Logits")
+    os.makedirs(sub_folder, exist_ok=True)
+    for i in range(n_channels):
+        # Define paths and skip if needed
+        src_file = os.path.join(work_dir, 'step0300.jpg')
+        dst_path = os.path.join(sub_folder, str(i)+'.jpg')
+        movie_path = dst_path.replace('.jpg', '.mp4')
+        if os.path.isfile(dst_path) and os.path.isfile(movie_path):
+            print('Skipping {}-{}'.format("Logits", i))
+            continue
+
+        # Run, save image, save video
+        alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights)
+        shutil.copy(src_file, dst_path)
+        save_video(work_dir, movie_path)
+
+        # Delete all temp files
+        files = glob.glob(os.path.join(work_dir, '*'))
+        for f in files:
+            os.remove(f)
 
 
 def get_layer_info(path):
@@ -130,13 +157,27 @@ def run(pb_path, save_dir, layer_info_path):
     # Remove temp dir
     shutil.rmtree(work_dir)
 
+def alt_run(pb_path, save_dir,active_goals,logit_goals,logit_weights):
 
+    # Allocating minimal memory
+    set_sess()
 
-def main(args=None):
-    if args is None:
-        args = sys.argv[1:]
-    args = _parse_args(args)
-    run(args.pb, args.save_dir, args.layers)
+    # Create save_dir
+    filename = os.path.split(pb_path)[1][:-3]
+    save_dir = create_dir(save_dir, subfolder=filename)
 
-if __name__ == '__main__':
-    main()
+    # Working dir
+    temp_folder = str(uuid.uuid4())
+    work_dir = os.path.join(WORK_DIR, temp_folder)
+    os.makedirs(work_dir, exist_ok=True)
+
+    # Read in layer info
+
+    # Get GAN network
+    gan_net = pretrained_networks.load_networks(NETWORK_PKL)[2]
+
+    # Run visualization
+    alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights)
+    
+    # Remove temp dir
+    shutil.rmtree(work_dir)
