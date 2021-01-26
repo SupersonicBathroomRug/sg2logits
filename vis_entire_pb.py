@@ -87,7 +87,7 @@ def vis_layers(gan_net, pb_path, layer_info, work_dir, save_dir):
 def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights):
     sub_folder = os.path.join(save_dir, "Logits")
     os.makedirs(sub_folder, exist_ok=True)
-    for i in range(n_channels):
+    for i in range(1):
         # Define paths and skip if needed
         src_file = os.path.join(work_dir, 'step0300.jpg')
         dst_path = os.path.join(sub_folder, str(i)+'.jpg')
