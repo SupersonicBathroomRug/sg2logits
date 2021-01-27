@@ -123,7 +123,7 @@ class DreamProjector:
 		# reduce_max would make sense too.
 		#mean_activation = tf.reduce_mean(neuron, axis=(1, 2))
 		mean_activation = tf.reduce_sum(active_goals*logit_weights*tf.square(logits-logit_goals))
-		self._loss = -mean_activation
+		self._loss = mean_activation
 		self._dist = self._loss
 
 		# Noise regularization graph.
