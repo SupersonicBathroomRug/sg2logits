@@ -119,11 +119,6 @@ class DreamProjector:
 		
 		# layer_name, neuron_index = "Mixed_5c_Branch_3_b_1x1_act/Relu", 16
 		logits = self.graph.get_tensor_by_name(self.ins + "/Logits/convolution:0")
-
-		#debug-------------------------------------------------------------------------------------------------------------------
-		tf.print(logits, output_stream=sys.stdout)
-		return
-		#debug-------------------------------------------------------------------------------------------------------------------
 		
 		# reduce_max would make sense too.
 		#mean_activation = tf.reduce_mean(neuron, axis=(1, 2))
