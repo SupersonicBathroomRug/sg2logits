@@ -33,7 +33,7 @@ import cv2
 # ===========================================================
 
 NETWORK_PKL = "gdrive:networks/stylegan2-ffhq-config-f.pkl"
-N_ITERATIONS = 300
+N_ITERATIONS = 2
 WORK_DIR = 'temp/'
 
 def _parse_args(args):
@@ -99,7 +99,7 @@ def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals
         # Run, save image, save video
         alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights)
         shutil.copy(src_file, dst_path)
-        save_video(work_dir, movie_path)
+        #save_video(work_dir, movie_path)
 
         # Delete all temp files
         files = glob.glob(os.path.join(work_dir, '*'))
