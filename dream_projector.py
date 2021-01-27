@@ -108,7 +108,7 @@ class DreamProjector:
 
 		self.load_network(pb, proc_images_expr)
 
-	def custom_set(gan_net, pb_path,active_goals,logit_goals,logit_weights):
+	def custom_set(self, Gs, network_protobuf_path, active_goals, logit_goals, logit_weights):
 
 		if not self.initialized:
 			self._initialize(Gs, network_protobuf_path)
