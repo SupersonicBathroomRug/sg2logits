@@ -48,10 +48,13 @@ def dream_project(gan_net, pb_path, layer_name, neuron_index, prefix):
     proj.set_network(gan_net, pb_path, layer_name, neuron_index)
     run_projector.dream_project(proj, prefix+'/', N_ITERATIONS)
 
-def alt_dream_project(gan_net, pb_path, neuron_index, prefix,active_goals,logit_goals,logit_weights):
+def alt_dream_project(gan_net, pb_path, neuron_index, prefix,active_goals,logit_goals,logit_weights,gen_vid,steps):
     proj = dream_projector.DreamProjector()
-    proj.custom_set(gan_net, pb_path,active_goals,logit_goals,logit_weights)
-    run_projector.dream_project(proj, prefix+'/', N_ITERATIONS)
+    proj.custom_set(gan_net, pb_path,active_goals,logit_goals,logit_weights,steps)#add steps
+    if gen_vid:
+        run_projector.dream_project(proj, prefix+'/', steps)
+    else:
+        run_projector.dream_project(proj, prefix+'/', 1)
 
 def save_video(work_dir, save_path):
     imgs = sorted(glob.glob(os.path.join(work_dir, '*.jpg')))
@@ -84,17 +87,19 @@ def vis_layers(gan_net, pb_path, layer_info, work_dir, save_dir):
             for f in files:
                 os.remove(f)
 
-def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights):
+def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights,gen_vid,steps):
     sub_folder = os.path.join(save_dir, "Logits")
     os.makedirs(sub_folder, exist_ok=True)
     for i in range(1):
         # Define paths and skip if needed
-        src_file = os.path.join(work_dir, 'step0300.jpg') #change this if changing num steps in dream_projector
+        src_file = os.path.join(work_dir, 'step'+"{:04d}".format(steps)+'.jpg') #change this if changing num steps in dream_projector
         dst_path = os.path.join(sub_folder, 'op.jpg')
 
         # Run, save image, save video
-        alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights)
+        alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights,gen_vid,steps)
         shutil.copy(src_file, dst_path)
+        if gen_vid:
+            save_video(work_dir, movie_path)
 
         # Delete all temp files
         files = glob.glob(os.path.join(work_dir, '*'))
@@ -152,7 +157,7 @@ def run(pb_path, save_dir, layer_info_path):
     # Remove temp dir
     shutil.rmtree(work_dir)
 
-def alt_run(pb_path, save_dir,active_goals,logit_goals,logit_weights):
+def alt_run(pb_path, save_dir,active_goals,logit_goals,logit_weights,gen_vid=False,steps=300):
 
     # Allocating minimal memory
     set_sess()
@@ -172,7 +177,7 @@ def alt_run(pb_path, save_dir,active_goals,logit_goals,logit_weights):
     gan_net = pretrained_networks.load_networks(NETWORK_PKL)[2]
 
     # Run visualization
-    alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights)
+    alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights,gen_vid,steps)
     
     # Remove temp dir
     shutil.rmtree(work_dir)
