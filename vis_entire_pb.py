@@ -89,10 +89,9 @@ def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals
     os.makedirs(sub_folder, exist_ok=True)
     for i in range(1):
         # Define paths and skip if needed
-        src_file = os.path.join(work_dir, 'step0300.jpg')
-        dst_path = os.path.join(sub_folder, str(i)+'.jpg')
-        movie_path = dst_path.replace('.jpg', '.mp4')
-        if os.path.isfile(dst_path) and os.path.isfile(movie_path):
+        src_file = os.path.join(work_dir, 'step0100.jpg') #change this if changing num steps in dream_projector
+        dst_path = os.path.join(sub_folder, 'op.jpg')
+        if os.path.isfile(dst_path):
             print('Skipping {}-{}'.format("Logits", i))
             continue
 
