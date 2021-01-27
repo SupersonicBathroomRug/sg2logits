@@ -91,14 +91,10 @@ def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals
         # Define paths and skip if needed
         src_file = os.path.join(work_dir, 'step0100.jpg') #change this if changing num steps in dream_projector
         dst_path = os.path.join(sub_folder, 'op.jpg')
-        if os.path.isfile(dst_path):
-            print('Skipping {}-{}'.format("Logits", i))
-            continue
 
         # Run, save image, save video
         alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights)
         shutil.copy(src_file, dst_path)
-        #save_video(work_dir, movie_path)
 
         # Delete all temp files
         files = glob.glob(os.path.join(work_dir, '*'))
