@@ -15,7 +15,7 @@ from training import misc
 
 class DreamProjector:
 	def __init__(self):
-		self.num_steps                  = 300 # was 1000
+		self.num_steps                  = 100 # was 300
 		self.dlatent_avg_samples        = 10000
 		self.initial_learning_rate      = 0.01 # was 0.1
 		self.initial_noise_factor       = 0.05
