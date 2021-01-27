@@ -99,6 +99,7 @@ def alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals
         alt_dream_project(gan_net, pb_path, i, work_dir,active_goals,logit_goals,logit_weights,gen_vid,steps)
         shutil.copy(src_file, dst_path)
         if gen_vid:
+            movie_path = dst_path.replace('.jpg', '.mp4')
             save_video(work_dir, movie_path)
 
         # Delete all temp files
