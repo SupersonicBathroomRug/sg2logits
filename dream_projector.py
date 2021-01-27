@@ -108,7 +108,7 @@ class DreamProjector:
 
 		self.load_network(pb, proc_images_expr)
 
-	def custom_set(self, Gs, network_protobuf_path, active_goals, logit_goals, logit_weights):
+	def custom_set(self, Gs, network_protobuf_path, active_goals, logit_goals, logit_weights, steps):
 
 		if not self.initialized:
 			self._initialize(Gs, network_protobuf_path)
@@ -147,6 +147,7 @@ class DreamProjector:
 		self._opt = dnnlib.tflib.Optimizer(learning_rate=self._lrate_in)
 		self._opt.register_gradients(self._loss, [self._dlatents_var] + self._noise_vars)
 		self._opt_step = self._opt.apply_updates()
+		self.num_steps=steps
 
 	def set_network(self, Gs, network_protobuf_path, layer_name, neuron_index):
 
