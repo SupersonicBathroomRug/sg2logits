@@ -30,6 +30,10 @@ import shutil
 import cv2
 import vis_entire_pb
 
+TL_GAN_HASH_FUNCS = {
+    tf.Session : id
+}
+
 # ===========================================================
 # CONSTANTS
 # ===========================================================
@@ -38,23 +42,22 @@ NETWORK_PKL = "gdrive:networks/stylegan2-ffhq-config-f.pkl"
 N_ITERATIONS = 2
 WORK_DIR = 'temp/'
 pb_path='./adam.pb' #this probably doesn't work in this form, possibly needs something along the lines of os.get_current_directory_path()
-save_dir="pictures"
 STEPS=100
 gen_vid=False
 feature_names=["5_o_Clock_Shadow","Arched_Eyebrows","Attractive","Bags_Under_Eyes","Bald",        "Bangs","Big_Lips","Big_Nose","Black_Hair","Blond_Hair",
-				"Blurry","Brown_Hair","Bushy_Eyebrows","Chubby","Double_Chin",                    "Eyeglasses","Goatee","Gray_Hair", "Heavy_Makeup","High_Cheekbones",
-				"Male","Mouth_Slightly_Open","Mustache","Narrow_Eyes","No_Beard",                 "Oval_Face","Pale_Skin","Pointy_Nose","Receding_Hairline","Rosy_Cheeks",
-				"Sideburns","Smiling","Straight_Hair","Wavy_Hair","Wearing_Earrings",             "Wearing_Hat","Wearing_Lipstick","Wearing_Necklace","Wearing_Necktie","Young"]
+                "Blurry","Brown_Hair","Bushy_Eyebrows","Chubby","Double_Chin",                    "Eyeglasses","Goatee","Gray_Hair", "Heavy_Makeup","High_Cheekbones",
+                "Male","Mouth_Slightly_Open","Mustache","Narrow_Eyes","No_Beard",                 "Oval_Face","Pale_Skin","Pointy_Nose","Receding_Hairline","Rosy_Cheeks",
+                "Sideburns","Smiling","Straight_Hair","Wavy_Hair","Wearing_Earrings",             "Wearing_Hat","Wearing_Lipstick","Wearing_Necklace","Wearing_Necktie","Young"]
 
 TL_GAN_HASH_FUNCS = {
     tf.Session : id
 }
 
 def main():
-	save_dir,work_dir,gan_net=setup()	
+    save_dir,work_dir,gan_net=setup()
 
-	#======================================================================================================
-	st.sidebar.title('Features')
+    #======================================================================================================
+    st.sidebar.title('Features')
     seed = 42
     # If the user doesn't want to select which features to control, these will be used.
     default_control_features = ['Young','Smiling','Male']
@@ -100,31 +103,32 @@ def main():
     image_out=mpimg.imread('./pictures/adam/Logits/op.jpg') #this may or may not be usable in this format
     st.image(image_out, use_column_width=True)
 
+
 @st.cache(allow_output_mutation=True, hash_funcs=TL_GAN_HASH_FUNCS)
 def setup():
-	vis_entire_pb.set_sess()
+    vis_entire_pb.set_sess()
 
-	# Create save_dir
-	filename = os.path.split(pb_path)[1][:-3]
-	save_dir = create_dir(save_dir, subfolder=filename)
+    # Create save_dir
+    filename = os.path.split(pb_path)[1][:-3]
+    save_dir = vis_entire_pb.create_dir("pictures", subfolder=filename)
 
-	# Working dir
-	temp_folder = str(uuid.uuid4())
-	work_dir = os.path.join(WORK_DIR, temp_folder)
-	os.makedirs(work_dir, exist_ok=True)
+    # Working dir
+    temp_folder = str(uuid.uuid4())
+    work_dir = os.path.join(WORK_DIR, temp_folder)
+    os.makedirs(work_dir, exist_ok=True)
 
-	# Read in layer info
+    # Read in layer info
 
-	# Get GAN network
-	gan_net = pretrained_networks.load_networks(NETWORK_PKL)[2]
-	return save_dir,work_dir,gan_net
+    # Get GAN network
+    gan_net = pretrained_networks.load_networks(NETWORK_PKL)[2]
+    return save_dir,work_dir,gan_net
 
 @st.cache(show_spinner=False, hash_funcs=TL_GAN_HASH_FUNCS)
 def vis_wrapper(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights,gen_vid,STEPS):
-	vis_entire_pb.alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights,gen_vid,STEPS)
+    vis_entire_pb.alt_vis_layers(gan_net, pb_path, work_dir, save_dir,active_goals,logit_goals,logit_weights,gen_vid,STEPS)
 
 def get_random_features(feature_names,seed):
-	"""
+    """
     Return a random dictionary from feature names to feature
     values within the range [-1.0,1.0] (out of [-1.0,1.0]).
     """
