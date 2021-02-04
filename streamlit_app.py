@@ -46,6 +46,10 @@ feature_names=["5_o_Clock_Shadow","Arched_Eyebrows","Attractive","Bags_Under_Eye
 				"Male","Mouth_Slightly_Open","Mustache","Narrow_Eyes","No_Beard",                 "Oval_Face","Pale_Skin","Pointy_Nose","Receding_Hairline","Rosy_Cheeks",
 				"Sideburns","Smiling","Straight_Hair","Wavy_Hair","Wearing_Earrings",             "Wearing_Hat","Wearing_Lipstick","Wearing_Necklace","Wearing_Necktie","Young"]
 
+TL_GAN_HASH_FUNCS = {
+    tf.Session : id
+}
+
 def main():
 	save_dir,work_dir,gan_net=setup()	
 
